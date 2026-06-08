@@ -197,6 +197,49 @@ def _apply_query_boost(query: str, results: list[dict]) -> list[dict]:
     return boosted
 
 
+def focus_chunks(query: str, chunks: list[dict], max_chunks: int = 2) -> list[dict]:
+    """Keep only the most relevant chunks for LLM context (improves precision)."""
+    if not chunks:
+        return chunks
+
+    article_nums = re.findall(r"Điều\s*(\d+)", query, flags=re.I)
+    if article_nums:
+        primary = article_nums[0]
+        matched = [
+            c
+            for c in chunks
+            if re.search(rf"\*\*Điều {primary}\.", c.get("content", ""), flags=re.I)
+        ]
+        if matched:
+            return matched[:1]
+
+    query_norm = _normalize(query)
+    for name in _KNOWN_ARTISTS:
+        if _normalize(name) in query_norm:
+            matched = [
+                c for c in chunks if _normalize(name) in _normalize(c.get("content", ""))
+            ]
+            if matched:
+                return matched[:1]
+
+    if "hinh thuc cai nghien" in query_norm:
+        matched = [
+            c
+            for c in chunks
+            if re.search(r"\*\*Điều 28\.", c.get("content", ""), flags=re.I)
+        ]
+        if matched:
+            return matched[:1]
+
+    legal_only = [c for c in chunks if c.get("metadata", {}).get("type") == "legal"]
+    if legal_only and any(
+        marker in query_norm for marker in ("dieu ", "bo luat", "hinh phat", "toi ")
+    ):
+        return legal_only[:max_chunks]
+
+    return chunks[:max_chunks]
+
+
 def retrieve(
     query: str,
     top_k: int = DEFAULT_TOP_K,

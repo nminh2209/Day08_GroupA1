@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 _PROJECT_DIR = Path(__file__).parent.parent
 load_dotenv(_PROJECT_DIR / ".env")
 
-from src.task9_retrieval_pipeline import retrieve
+from src.task9_retrieval_pipeline import focus_chunks, retrieve
 
 # top_k=5: đủ evidence, tránh lost-in-the-middle với context quá dài
 TOP_K = 5
@@ -251,7 +251,7 @@ def generate_with_citation(query: str, top_k: int = TOP_K) -> dict:
             'model': str | None,        # OpenAI model used, or None if fallback
         }
     """
-    chunks = retrieve(query, top_k=top_k)
+    chunks = focus_chunks(query, retrieve(query, top_k=top_k), max_chunks=min(3, top_k))
     reordered = reorder_for_llm(chunks)
     context = format_context(reordered)
     sources = build_sources_list(chunks)

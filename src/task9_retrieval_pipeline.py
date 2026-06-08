@@ -38,12 +38,15 @@ def retrieve(
     else:
         final_results = merged[:top_k]
 
-    if not final_results or final_results[0]["score"] < score_threshold:
+    # Lọc bỏ các kết quả có điểm thấp hơn ngưỡng (tránh rác/hallucination)
+    filtered_results = [r for r in final_results if r["score"] >= score_threshold]
+
+    if not filtered_results:
         fallback = pageindex_search(query, top_k=top_k)
         if fallback:
             return fallback
 
-    return final_results[:top_k]
+    return filtered_results[:top_k]
 
 
 if __name__ == "__main__":

@@ -43,6 +43,8 @@ Rules:
 - Every factual claim MUST have a citation in brackets
 - Use the Source label from each document block for citations
 - If context is insufficient, say so clearly
+- NEVER generate markdown links like `[text](http...)` or include external URLs under any circumstances
+- Do NOT include footer text, registration form text, or navigational text from the sources
 - Structure your answer with clear paragraphs"""
 
 

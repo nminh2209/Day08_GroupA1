@@ -142,20 +142,53 @@ def format_context(chunks: list[dict]) -> str:
     return "\n---\n".join(context_parts)
 
 
+def get_actual_link(doc_type: str, source_name: str) -> str:
+    """Read the standardized markdown file to extract the original URL or return local path."""
+    standardized_dir = _PROJECT_DIR / "data" / "standardized"
+    filepath = standardized_dir / doc_type / source_name
+    if not filepath.exists():
+        return "#"
+    if doc_type == "news":
+        try:
+            content = filepath.read_text(encoding="utf-8")
+            match = re.search(r"\*\*Source:\*\* (https?://[^\s\n]+)", content)
+            if match:
+                return match.group(1)
+        except Exception:
+            pass
+    return filepath.absolute().as_uri()
+
+
+def clean_snippet(text: str) -> str:
+    """Remove markdown images, links, and pure URLs to prevent broken UI rendering."""
+    import re
+    # Remove markdown images entirely ![alt](url) or truncated ![alt](url...
+    text = re.sub(r'!\[.*?\]\([^\)]*', '', text)
+    # Remove complete or truncated markdown links [text](url... -> text
+    text = re.sub(r'\[([^\]]+)\]\([^\)]*', r'\1', text)
+    # Remove trailing raw URLs if any
+    text = re.sub(r'https?://[^\s\n]*', '', text)
+    # Collapse multiple newlines
+    text = re.sub(r'\n\s*\n', '\n', text)
+    return text.strip()
+
 def build_sources_list(chunks: list[dict]) -> list[dict]:
     """Build structured source list from retrieved chunks."""
     sources = []
     for i, chunk in enumerate(chunks, 1):
         metadata = chunk.get("metadata", {})
+        source_name = metadata.get("source", "")
+        doc_type = metadata.get("type", "unknown")
         sources.append(
             {
                 "doc_id": f"Doc-{i}",
                 "label": format_source_label(metadata, i),
-                "file": metadata.get("source", ""),
-                "type": metadata.get("type", "unknown"),
+                "file": source_name,
+                "type": doc_type,
                 "score": chunk.get("score", 0.0),
                 "retrieval": chunk.get("source", "hybrid"),
-                "snippet": chunk["content"][:300],
+                "snippet": clean_snippet(chunk["content"]),
+                "link": get_actual_link(doc_type, source_name)
             }
         )
     return sources

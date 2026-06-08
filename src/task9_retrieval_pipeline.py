@@ -7,7 +7,7 @@ from src.task6_lexical_search import lexical_search
 from src.task7_reranking import rerank, rerank_rrf
 from src.task8_pageindex_vectorless import pageindex_search
 
-SCORE_THRESHOLD = 0.3
+SCORE_THRESHOLD = 0.05
 DEFAULT_TOP_K = 5
 RERANK_METHOD = "cross_encoder"
 

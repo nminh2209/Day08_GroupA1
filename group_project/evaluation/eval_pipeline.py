@@ -39,6 +39,7 @@ def evaluate_with_deepeval(golden_dataset: list[dict], use_reranking: bool = Tru
             ContextualRecallMetric,
             ContextualPrecisionMetric,
         )
+        from deepeval.models import GPTModel
         from deepeval.test_case import LLMTestCase
     except ImportError:
         print("Vui lòng cài đặt deepeval: pip install deepeval")
@@ -75,11 +76,15 @@ def evaluate_with_deepeval(golden_dataset: list[dict], use_reranking: bool = Tru
     if not use_reranking:
         src.task9_retrieval_pipeline.SCORE_THRESHOLD = 0.3
 
+    eval_model_name = os.getenv("DEEPEVAL_MODEL", os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+    eval_model = GPTModel(model=eval_model_name)
+    print(f"Using DeepEval model: {eval_model_name}")
+
     metrics = [
-        FaithfulnessMetric(threshold=0.7),
-        AnswerRelevancyMetric(threshold=0.7),
-        ContextualRecallMetric(threshold=0.7),
-        ContextualPrecisionMetric(threshold=0.7),
+        FaithfulnessMetric(threshold=0.7, model=eval_model),
+        AnswerRelevancyMetric(threshold=0.7, model=eval_model),
+        ContextualRecallMetric(threshold=0.7, model=eval_model),
+        ContextualPrecisionMetric(threshold=0.7, model=eval_model),
     ]
 
     print("Bắt đầu đánh giá với DeepEval...")

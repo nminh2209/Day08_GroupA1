@@ -2,10 +2,16 @@ import sys
 import os
 import json
 from pathlib import Path
+
+from dotenv import load_dotenv
 import pandas as pd
 
 # Add the root directory to path to import src
-sys.path.append(str(Path(__file__).parent.parent.parent))
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.append(str(PROJECT_ROOT))
+
+# Load project .env before using OpenAI / DeepEval
+load_dotenv(PROJECT_ROOT / ".env")
 
 from src.task10_generation import generate_with_citation
 
@@ -167,8 +173,19 @@ def export_results():
 if __name__ == "__main__":
     golden_dataset = load_golden_dataset()
     print(f"Loaded {len(golden_dataset)} test cases")
-    
-    # Thực tế chạy evaluation cần OPENAI_API_KEY và thời gian lâu
-    # Để demo, ta sẽ mock dữ liệu và tạo báo cáo
-    export_results()
+
+    # Prefer the real DeepEval evaluation when the API key is available.
+    if os.getenv("OPENAI_API_KEY"):
+        print("Running real DeepEval evaluation with the configured .env key...")
+        results = evaluate_with_deepeval(golden_dataset, use_reranking=True)
+        print("DeepEval completed.")
+        if results:
+            print("Evaluation result type:", type(results).__name__)
+        else:
+            print("DeepEval returned no results; falling back to the demo report.")
+            export_results()
+    else:
+        print("OPENAI_API_KEY is not set; using the demo report instead.")
+        export_results()
+
     print("Completed evaluation pipeline!")

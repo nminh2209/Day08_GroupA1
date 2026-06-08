@@ -26,7 +26,7 @@ TOP_K = 5
 # top_p=0.9: nucleus sampling — đủ đa dạng nhưng không quá ngẫu nhiên
 TOP_P = 0.9
 # temperature=0.3: RAG cần factual, ít hallucination
-TEMPERATURE = 0.3
+TEMPERATURE = 0.1
 
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 

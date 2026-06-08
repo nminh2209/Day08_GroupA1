@@ -33,6 +33,7 @@ def evaluate_with_deepeval(golden_dataset: list[dict], use_reranking: bool = Tru
     """
     try:
         from deepeval import evaluate
+        from deepeval.evaluate.configs import AsyncConfig
         from deepeval.metrics import (
             FaithfulnessMetric,
             AnswerRelevancyMetric,
@@ -93,7 +94,12 @@ def evaluate_with_deepeval(golden_dataset: list[dict], use_reranking: bool = Tru
         print("LỖI: Bạn cần thiết lập biến môi trường OPENAI_API_KEY để chạy DeepEval.")
         return {}
         
-    results = evaluate(test_cases, metrics)
+    max_concurrent = int(os.getenv("DEEPEVAL_MAX_CONCURRENT", "2"))
+    results = evaluate(
+        test_cases,
+        metrics,
+        async_config=AsyncConfig(run_async=True, throttle_value=0, max_concurrent=max_concurrent),
+    )
     return results
 
 # =============================================================================

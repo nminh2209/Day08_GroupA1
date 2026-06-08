@@ -80,7 +80,7 @@ def evaluate_with_deepeval(golden_dataset: list[dict], use_reranking: bool = Tru
     )
 
     for item in golden_dataset:
-        result = generate_with_citation(item["question"], top_k=3)
+        result = generate_with_citation(item["question"], top_k=5)
         test_case = LLMTestCase(
             input=item["question"],
             actual_output=result["answer"],

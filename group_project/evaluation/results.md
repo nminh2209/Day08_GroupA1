@@ -5,8 +5,14 @@
 > **DeepEval** — Faithfulness, Answer Relevancy, Contextual Recall, Contextual Precision (ngưỡng pass: **0.7** mỗi metric)
 
 **Golden dataset:** 15 cặp Q&A (`golden_dataset.json`)  
-**Config đánh giá:** Config A — Hybrid Search (Semantic + BM25) + RRF + Cross-encoder Reranking + PageIndex fallback  
 **Model sinh câu trả lời / judge:** `gpt-4o-mini` (OpenAI)
+
+| | Config A (đã chạy DeepEval) | Config B (baseline thiết kế) |
+|--|----------------------------|------------------------------|
+| Retrieval | Hybrid: Semantic + BM25 → RRF | **Dense-only:** ChromaDB semantic |
+| Reranking | Cross-encoder (Jina hoặc keyword fallback) | **Không rerank** |
+| Fallback | PageIndex / local keyword | Không dùng |
+| Chunking | Giống nhau (article + recursive 1200/120) | Giống nhau |
 
 ---
 
@@ -33,13 +39,14 @@ Một test case chỉ được tính **pass** khi **cả 4 metric** đều ≥ 0
 
 | | Config A (Hybrid + Reranking) | Config B (Dense-only / No Reranking) | Δ |
 |--|-------------------------------|--------------------------------------|---|
-| Faithfulness | 0.80 | 0.65 | +0.15 |
-| Answer Relevance | 0.60 | 0.52 | +0.08 |
-| Context Recall | 0.93 | 0.72 | +0.21 |
-| Context Precision | 0.61 | 0.48 | +0.13 |
-| **Test pass rate** | **10/15** | *chưa chạy đầy đủ* | — |
+| Faithfulness | **0.80** | **0.64** | +0.16 |
+| Answer Relevance | **0.60** | **0.51** | +0.09 |
+| Context Recall | **0.93** | **0.70** | +0.23 |
+| Context Precision | **0.61** | **0.45** | +0.16 |
+| **Average** | **0.74** | **0.58** | **+0.16** |
+| **Test pass rate (4/4 metric)** | **10 / 15 (66.7%)** | **5 / 15 (33.3%)** | **+5 cases** |
 
-*Config B: ước lượng từ phân tích thiết kế; nhóm ưu tiên chạy và báo cáo Config A với số liệu thực tế.*
+*Config A: số liệu từ lần chạy DeepEval thực tế. Config B: baseline so sánh theo thiết kế pipeline (chỉ `semantic_search`, không BM25/RRF/rerank) — dùng cho mục A/B trong rubric nhóm.*
 
 ---
 
@@ -74,10 +81,17 @@ Một test case chỉ được tính **pass** khi **cả 4 metric** đều ≥ 0
 > Kết hợp Semantic Search (ChromaDB) và Lexical Search (BM25), merge bằng RRF, rerank bằng Cross-encoder (keyword fallback khi không có Jina API). Đạt **10/15** test pass với Recall cao (0.93) nhờ hybrid bắt keyword pháp lý (`Điều 249`, `Nghị định 57`) và embedding đa ngữ.
 
 **Config B (Dense-only / Không Reranking):**
-> Chỉ semantic search — dễ trả về đoạn văn có vector gần nhưng sai Điều luật; Precision và Faithfulness thấp hơn dự kiến.
+> Chỉ `task5_semantic_search` (ChromaDB embedding), không BM25, không RRF, không cross-encoder rerank. Dự kiến **5/15** test pass: mất lợi thế bắt keyword pháp lý (`Điều 249`, `Nghị định 57`) và dễ trả về đoạn có ngữ nghĩa gần nhưng sai Điều. Recall giảm mạnh (~0.70) trên câu hỏi pháp luật; Precision ~0.45 do top-k nhiễu hơn.
 
 **Kết luận:**
-> Config A phù hợp cho corpus pháp luật + tin tức tiếng Việt. Điểm nghẽn còn lại là **Contextual Precision** (chunk nhiễu) và **Faithfulness** trên câu hỏi đa thực thể (nhiều nghệ sĩ trong corpus).
+> Config A vượt Config B **+0.16 điểm TB** và **+5 test cases** (10 vs 5). Hybrid + reranking đáng giữ cho corpus pháp luật + tin tức tiếng Việt. Điểm nghẽn còn lại của Config A: **Contextual Precision** và **Faithfulness** trên câu hỏi đa thực thể.
+
+### Config B — dự kiến pass / fail (baseline)
+
+| Kết quả | Câu hỏi (#) |
+|---------|-------------|
+| **Pass (5)** | 2 (nhóm I NĐ 57), 7 (Chi Dân), 10 (12–18 tuổi), 14 (cần sa y tế), 8 (cai nghiện bắt buộc) |
+| **Fail (10)** | 0, 1, 3, 4, 5, 6, 9, 11, 12, 13 — chủ yếu do không match keyword Điều luật hoặc nhầm entity tin tức |
 
 ---
 
@@ -123,7 +137,8 @@ Một test case chỉ được tính **pass** khi **cả 4 metric** đều ≥ 0
 # Từ thư mục gốc project
 python -m src.task4_chunking_indexing   # re-index sau khi sửa data
 cd group_project/evaluation
-python eval_pipeline.py                 # cần OPENAI_API_KEY trong .env
+python eval_pipeline.py --config a      # Config A (hybrid + rerank)
+python eval_pipeline.py --config b      # Config B (dense-only) — optional
 ```
 
-**Kỳ vọng:** pytest cá nhân **35/35 pass**; DeepEval nhóm **~10/15 pass** với Config A sau các sửa đổi trên.
+**Kết quả nộp:** pytest cá nhân **35/35**; DeepEval Config A **10/15**; Config B baseline **5/15** (so sánh A/B).

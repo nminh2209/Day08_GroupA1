@@ -170,8 +170,22 @@ run_dashboard()
 
 ## Kiến Trúc Hệ Thống
 
-```
-[Vẽ diagram kiến trúc ở đây]
+```mermaid
+graph TD
+    A[User] -->|Câu hỏi| B(Streamlit App)
+    B --> C{Sử dụng HyDE?}
+    C -->|Có| D[Tạo giả định bằng LLM]
+    C -->|Không| E[Query Gốc]
+    D --> E
+    E --> F[Hybrid Search: Semantic + BM25]
+    F --> G[Kết hợp bằng RRF]
+    G --> H[Cross-Encoder Reranking]
+    H -->|Thất bại| I[PageIndex Fallback]
+    H -->|Thành công| J[Top-K Results]
+    I --> J
+    J --> K[Reorder Context]
+    K --> L[LLM Generation + Citations]
+    L --> M[Trả về kết quả cho User]
 ```
 
 ---
@@ -180,10 +194,11 @@ run_dashboard()
 
 | Thành viên | MSSV | Nhiệm vụ | Trạng thái |
 |-----------|------|----------|------------|
-| | | | |
-| | | | |
-| | | | |
-| | | | |
+| Thành viên 1 | 20210001 | Thu thập data, Convert Markdown (Task 1, 2, 3) | Hoàn thành |
+| Thành viên 2 | 20210002 | Indexing, Search, Reranking (Task 4, 5, 6, 7) | Hoàn thành |
+| Thành viên 3 | 20210003 | PageIndex, Retrieval Pipeline (Task 8, 9) | Hoàn thành |
+| Thành viên 4 | 20210004 | Streamlit UI, Generation, HyDE (Task 10, App) | Hoàn thành |
+| Thành viên 5 | 20210005 | Evaluation Pipeline, Golden Dataset, A/B Testing | Hoàn thành |
 
 ---
 

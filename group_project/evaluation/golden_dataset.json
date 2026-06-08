@@ -13,5 +13,65 @@
     "question": "Danh mục các chất ma tuý thuộc nhóm I theo quy định pháp luật Việt Nam gồm những chất nào?",
     "expected_answer": "Nhóm I gồm các chất ma tuý tuyệt đối cấm sử dụng trong y học và đời sống, bao gồm heroin, cocaine, methamphetamine, MDMA (ecstasy), cannabis (cần sa), và các chất tương tự.",
     "expected_context": "Nghị định 57/2022/NĐ-CP, Phụ lục I"
+  },
+  {
+    "question": "Người nghiện ma túy tự nguyện cai nghiện có được Nhà nước hỗ trợ kinh phí không?",
+    "expected_answer": "Có, Nhà nước hỗ trợ một phần kinh phí đối với người tự nguyện cai nghiện tại các cơ sở cai nghiện ma túy công lập.",
+    "expected_context": "Luật Phòng chống ma tuý 2021, Điều 30"
+  },
+  {
+    "question": "Cơ quan nào có thẩm quyền quyết định đưa người nghiện vào cơ sở cai nghiện bắt buộc?",
+    "expected_answer": "Tòa án nhân dân cấp huyện có thẩm quyền quyết định áp dụng biện pháp đưa vào cơ sở cai nghiện bắt buộc.",
+    "expected_context": "Luật Phòng chống ma tuý 2021, Điều 32"
+  },
+  {
+    "question": "Nghệ sĩ Hữu Tín bị tuyên án bao nhiêu năm tù vì tội tổ chức sử dụng trái phép chất ma túy?",
+    "expected_answer": "Diễn viên hài Hữu Tín bị Tòa án nhân dân Quận 8 (TP.HCM) tuyên phạt 7 năm 6 tháng tù vì tội tổ chức sử dụng trái phép chất ma túy.",
+    "expected_context": "Tin tức Báo chí, 2023"
+  },
+  {
+    "question": "Hành vi lôi kéo người khác sử dụng trái phép chất ma túy bị xử lý như thế nào?",
+    "expected_answer": "Theo Điều 258 Bộ luật Hình sự, hành vi lôi kéo người khác sử dụng ma túy có thể bị phạt tù từ 1 đến 5 năm, trong trường hợp nghiêm trọng hơn có thể lên tới 15 năm hoặc tù chung thân.",
+    "expected_context": "Bộ luật Hình sự 2015, Điều 258"
+  },
+  {
+    "question": "Chi Dân bị cơ quan công an điều tra vì hành vi gì?",
+    "expected_answer": "Ca sĩ Chi Dân bị cơ quan chức năng điều tra do nghi ngờ liên quan đến việc sử dụng trái phép chất ma túy.",
+    "expected_context": "Tin tức Báo chí, 2024"
+  },
+  {
+    "question": "Trường hợp nào thì bị áp dụng biện pháp cai nghiện ma túy bắt buộc?",
+    "expected_answer": "Người nghiện ma túy từ đủ 18 tuổi trở lên bị áp dụng biện pháp cai nghiện bắt buộc khi không đăng ký cai nghiện tự nguyện, bị chấm dứt cai nghiện tự nguyện do vi phạm, hoặc tái nghiện.",
+    "expected_context": "Luật Phòng chống ma tuý 2021, Điều 32"
+  },
+  {
+    "question": "Hành vi sản xuất trái phép chất ma túy bị phạt tù tối đa bao nhiêu năm?",
+    "expected_answer": "Hành vi sản xuất trái phép chất ma túy có thể bị phạt tù từ 20 năm, tù chung thân hoặc tử hình đối với các trường hợp sản xuất số lượng lớn.",
+    "expected_context": "Bộ luật Hình sự 2015, Điều 248"
+  },
+  {
+    "question": "Người từ đủ 12 tuổi đến dưới 18 tuổi cai nghiện ma túy thì thời gian là bao lâu?",
+    "expected_answer": "Thời hạn cai nghiện ma túy bắt buộc đối với người từ đủ 12 tuổi đến dưới 18 tuổi là từ 06 tháng đến 12 tháng.",
+    "expected_context": "Luật Phòng chống ma tuý 2021, Điều 33"
+  },
+  {
+    "question": "Nghệ sĩ Châu Việt Cường nhận án phạt bao nhiêu năm tù?",
+    "expected_answer": "Nghệ sĩ Châu Việt Cường bị kết án 13 năm tù về tội giết người trong tình trạng ảo giác do sử dụng ma túy.",
+    "expected_context": "Tin tức Báo chí, 2019"
+  },
+  {
+    "question": "Tội chứa chấp việc sử dụng trái phép chất ma túy theo Điều 256 quy định như thế nào?",
+    "expected_answer": "Người nào cho thuê, cho mượn địa điểm hoặc có bất kỳ hành vi nào khác chứa chấp việc sử dụng trái phép chất ma túy thì bị phạt tù từ 02 năm đến 07 năm.",
+    "expected_context": "Bộ luật Hình sự 2015, Điều 256"
+  },
+  {
+    "question": "Andrea Aybar (An Tây) bị bắt vì hành vi gì liên quan đến ma túy?",
+    "expected_answer": "Người mẫu Andrea Aybar (An Tây) bị công an tạm giữ để điều tra về hành vi tàng trữ và tổ chức sử dụng trái phép chất ma túy.",
+    "expected_context": "Tin tức Báo chí, 2024"
+  },
+  {
+    "question": "Có được phép trồng cây cần sa để phục vụ mục đích y tế không?",
+    "expected_answer": "Việc trồng các loại cây có chứa chất ma túy như cần sa là hành vi bị nghiêm cấm, trừ trường hợp được cơ quan nhà nước có thẩm quyền cho phép để phục vụ mục đích nghiên cứu, y tế.",
+    "expected_context": "Luật Phòng chống ma tuý 2021, Điều 5"
   }
 ]

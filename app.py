@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import json
+import re
 from pathlib import Path
 from src.task10_generation import generate_with_citation, get_openai_client, is_openai_configured
 from src.task9_retrieval_pipeline import retrieve
@@ -41,6 +42,15 @@ with st.sidebar:
     - **Reranking**: Cross-encoder (Jina/Qwen)
     - **Fallback**: Vectorless search qua PageIndex
     - **HyDE**: Tùy chọn tăng cường ngữ nghĩa
+    """)
+    
+    st.markdown("---")
+    st.subheader("🛡️ Anti-Hallucination Guardrails")
+    st.markdown("""
+    Hệ thống tích hợp 3 lớp bảo vệ chống bịa đặt thông tin (Hallucination):
+    1. **Context Threshold Filter**: Cắt bỏ nghiêm ngặt các văn bản có điểm số (score) < 0.3 ở bước Retrieval để loại bỏ thông tin rác.
+    2. **Strict System Prompt**: Ép LLM chỉ được phép trả lời dựa trên context, phải trích dẫn nguồn cụ thể và cấm tuyệt đối tự sinh URL ngoại lai.
+    3. **Citation Verification**: Post-processing đối chiếu các trích dẫn `[...]` của LLM với danh sách nguồn gốc. Sẽ bật cảnh báo ngay lập tức nếu phát hiện trích dẫn không có thật.
     """)
 
 # Session State for Conversation Memory
@@ -124,7 +134,27 @@ if prompt := st.chat_input("Nhập câu hỏi của bạn (VD: Hình phạt tàn
             
             result = custom_generate_with_citation(prompt, history, use_hyde, top_k)
             
-            st.markdown(result["answer"])
+            # 1. Highlight các trích dẫn trong câu trả lời
+            formatted_answer = result["answer"]
+            formatted_answer = re.sub(r'(\[[^\]]+\])', r'<span style="background-color: #ffeb3b; color: #000; padding: 2px 4px; border-radius: 4px; font-weight: bold;">\1</span>', formatted_answer)
+            
+            st.markdown(formatted_answer, unsafe_allow_html=True)
+            
+            # 2. Guardrail: Citation Verification
+            valid_labels = [src["label"] for src in result["sources"]] + [f"Doc-{i+1}" for i in range(len(result["sources"]))]
+            hallucinated_citations = []
+            
+            for cite in result["citations"]:
+                # Trích dẫn LLM sinh ra có chứa ít nhất 1 nhãn tài liệu gốc thì hợp lệ
+                is_valid = any(label in cite for label in valid_labels)
+                if not is_valid:
+                    hallucinated_citations.append(f"[{cite}]")
+                    
+            if hallucinated_citations:
+                st.warning(f"⚠️ **Guardrail Cảnh Báo (Anti-Hallucination):** Phát hiện trích dẫn có thể bịa đặt: **{', '.join(hallucinated_citations)}**. Các nguồn này KHÔNG tồn tại trong tài liệu trích xuất. Vui lòng kiểm tra lại!")
+            else:
+                st.success("✅ **Guardrail Check:** Toàn bộ trích dẫn đã được tự động xác minh trùng khớp với danh sách tài liệu gốc.")
+
             
             # Display source metrics
             st.markdown(f"""

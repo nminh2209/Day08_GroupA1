@@ -1,0 +1,13 @@
+# Environment — never commit API keys
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# Data index (large, regeneratable)
+data/index/

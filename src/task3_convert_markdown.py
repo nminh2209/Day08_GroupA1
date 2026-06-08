@@ -3,12 +3,62 @@ Task 3 — Convert toàn bộ file trong data/landing/ thành Markdown.
 """
 
 import json
+import re
 from pathlib import Path
 
 from markitdown import MarkItDown
+import docx
 
 LANDING_DIR = Path(__file__).parent.parent / "data" / "landing"
 OUTPUT_DIR = Path(__file__).parent.parent / "data" / "standardized"
+
+
+def _clean_text_block(text: str) -> str:
+    """Remove page-template noise and keep the real legal body text."""
+    text = text.replace("\r\n", "\n")
+    text = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", text)
+    text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)
+    text = re.sub(r"https?://[^\s)]+", "", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    lines = []
+    seen = set()
+    for raw in text.splitlines():
+        line = re.sub(r"\s+", " ", raw).strip()
+        if not line:
+            continue
+        if any(token in line for token in ("THƯ VIỆN PHÁP LUẬT", "Trang chủ", "Liên hệ", "Danh mục", "Sơ đồ WebSite", "Đăng nhập", "Đăng ký", "Tư vấn Pháp luật", "Pháp Luật Nhà Đất", "Chủ đề liên quan", "Từ khóa:", "Lưu trữ", "Ghi chú", "Bài liên quan:", "PHÁP LUẬT DOANH NGHIỆP")):
+            continue
+        if line.startswith("* [") or line.startswith("- [") or line.startswith("[") and "https://" in line:
+            continue
+        if len(line) < 6:
+            continue
+        norm = re.sub(r"\s+", " ", line).lower()
+        if norm in seen:
+            continue
+        seen.add(norm)
+        lines.append(line)
+
+    cleaned = "\n".join(lines)
+    footer_idx = cleaned.find("**CHỦ TỊCH QUỐC HỘI")
+    if footer_idx != -1:
+        cleaned = cleaned[:footer_idx]
+
+    # Keep the legal body from the first real article heading onward.
+    for marker in ("**Chương I**", "**Điều 1. ", "**Điều 1.**", "Chương I", "Điều 1"):
+        idx = cleaned.find(marker)
+        if idx != -1:
+            cleaned = cleaned[idx:]
+            break
+
+    return cleaned.strip()
+
+
+def _read_docx_text(filepath: Path) -> str:
+    """Extract text from DOCX while filtering website-template noise."""
+    document = docx.Document(filepath)
+    paragraphs = [p.text for p in document.paragraphs]
+    text = "\n".join(paragraphs)
+    return _clean_text_block(text)
 
 
 def convert_legal_docs() -> int:
@@ -28,10 +78,15 @@ def convert_legal_docs() -> int:
         if filepath.suffix.lower() not in (".pdf", ".docx", ".doc"):
             continue
         print(f"Converting: {filepath.name}")
-        result = md.convert(str(filepath))
+        if filepath.suffix.lower() in {".docx", ".doc"}:
+            text = _read_docx_text(filepath)
+        else:
+            result = md.convert(str(filepath))
+            text = result.text_content
+        text = _clean_text_block(text)
         output_path = output_dir / f"{filepath.stem}.md"
-        output_path.write_text(result.text_content, encoding="utf-8")
-        print(f"  ✓ Saved: {output_path}")
+        output_path.write_text(text, encoding="utf-8")
+        print(f"  ✓ Saved: {output_path} ({len(text)} chars)")
         count += 1
 
     return count

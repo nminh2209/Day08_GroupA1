@@ -18,16 +18,16 @@ from sentence_transformers import SentenceTransformer
 
 from src.index_store import (
     COLLECTION_NAME,
-    get_chroma_collection,
     save_bm25_corpus,
     save_meta,
+    reset_index_cache,
 )
 
 STANDARDIZED_DIR = Path(__file__).parent.parent / "data" / "standardized"
 
-# 500 chars ≈ 1 đoạn luật ngắn; overlap 50 giữ ngữ cảnh giữa các chunk liền kề
-CHUNK_SIZE = 500
-CHUNK_OVERLAP = 50
+# 1200 chars giúp giữ một đoạn luật/điều rõ ràng hơn, giảm fragment rời rạc
+CHUNK_SIZE = 1200
+CHUNK_OVERLAP = 120
 CHUNKING_METHOD = "recursive"
 
 # Multilingual, 384-dim — cân bằng tốc độ và chất lượng cho tiếng Việt
@@ -116,12 +116,14 @@ def index_to_vectorstore(chunks: list[dict], reset: bool = True) -> None:
     from src.index_store import CHROMA_DIR, ensure_index_dir
 
     ensure_index_dir()
+    reset_index_cache()
 
     if reset and CHROMA_DIR.exists():
         import shutil
 
         shutil.rmtree(CHROMA_DIR, ignore_errors=True)
         ensure_index_dir()
+        reset_index_cache()
 
     client = chromadb.PersistentClient(
         path=str(CHROMA_DIR),

@@ -24,6 +24,14 @@ _bm25_index = None
 _bm25_corpus: list[dict] = []
 
 
+def reset_index_cache() -> None:
+    """Clear in-memory caches after index rebuild or when ChromaDB is stale."""
+    global _chroma_collection, _bm25_index, _bm25_corpus
+    _chroma_collection = None
+    _bm25_index = None
+    _bm25_corpus = []
+
+
 def ensure_index_dir() -> None:
     INDEX_DIR.mkdir(parents=True, exist_ok=True)
     CHROMA_DIR.mkdir(parents=True, exist_ok=True)
@@ -62,10 +70,17 @@ def load_bm25():
     return _bm25_index, _bm25_corpus
 
 
-def get_chroma_collection():
+def get_chroma_collection(*, force_refresh: bool = False):
     global _chroma_collection
+    if force_refresh:
+        _chroma_collection = None
+
     if _chroma_collection is not None:
-        return _chroma_collection
+        try:
+            _chroma_collection.count()
+            return _chroma_collection
+        except Exception:
+            _chroma_collection = None
 
     import chromadb
     from chromadb.config import Settings
@@ -88,4 +103,12 @@ def get_embedding_model():
 
 
 def index_exists() -> bool:
-    return BM25_PATH.exists() and any(CHROMA_DIR.iterdir()) if CHROMA_DIR.exists() else False
+    """Return True only when BM25 + ChromaDB index are present and readable."""
+    if not BM25_PATH.exists() or not CHROMA_DIR.exists():
+        return False
+    if not any(CHROMA_DIR.iterdir()):
+        return False
+    try:
+        return get_chroma_collection().count() > 0
+    except Exception:
+        return False

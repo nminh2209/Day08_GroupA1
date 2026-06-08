@@ -2,18 +2,39 @@
 Task 5 — Semantic Search Module.
 """
 
-from src.index_store import get_chroma_collection, get_embedding_model, index_exists
+from src.index_store import (
+    get_chroma_collection,
+    get_embedding_model,
+    index_exists,
+    reset_index_cache,
+)
 from src.task4_chunking_indexing import run_pipeline
+
+
+def _get_searchable_collection():
+    """Return a Chroma collection, rebuilding the index if handles are stale."""
+    if not index_exists():
+        run_pipeline()
+
+    try:
+        collection = get_chroma_collection()
+        collection.count()
+        return collection
+    except Exception:
+        reset_index_cache()
+        run_pipeline()
+        return get_chroma_collection(force_refresh=True)
 
 
 def semantic_search(query: str, top_k: int = 10) -> list[dict]:
     """
     Dense retrieval using ChromaDB cosine similarity.
     """
-    if not index_exists():
-        run_pipeline()
+    try:
+        collection = _get_searchable_collection()
+    except Exception:
+        return []
 
-    collection = get_chroma_collection()
     if collection.count() == 0:
         return []
 

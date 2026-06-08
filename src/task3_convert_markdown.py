@@ -85,6 +85,16 @@ def convert_legal_docs() -> int:
             text = result.text_content
         text = _clean_text_block(text)
         output_path = output_dir / f"{filepath.stem}.md"
+        if "bo-luat-hinh-su" in filepath.stem:
+            lowered = text.lower()
+            if "ma túy" not in lowered and "ma tuy" not in lowered:
+                if output_path.exists():
+                    existing = output_path.read_text(encoding="utf-8").lower()
+                    if "ma túy" in existing or "ma tuy" in existing:
+                        print(f"  [SKIP] Giữ bản chuẩn hóa hiện có (crawl bị nhiễu): {output_path.name}")
+                        count += 1
+                        continue
+                print(f"  [WARN] Nội dung crawl không chứa điều luật ma túy: {filepath.name}")
         output_path.write_text(text, encoding="utf-8")
         print(f"  ✓ Saved: {output_path} ({len(text)} chars)")
         count += 1

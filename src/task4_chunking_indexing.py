@@ -61,8 +61,35 @@ def load_documents() -> list[dict]:
     return documents
 
 
+def _chunk_legal_by_articles(
+    content: str, metadata: dict, splitter: RecursiveCharacterTextSplitter
+) -> list[dict]:
+    """Keep each Điều luật intact when possible — better recall for legal queries."""
+    import re
+
+    sections = re.split(r"(?=\*\*Điều \d+)", content)
+    chunks: list[dict] = []
+    for i, section in enumerate(sections):
+        section = section.strip()
+        if len(section) < 40:
+            continue
+        article_match = re.search(r"\*\*Điều (\d+)", section)
+        article_num = article_match.group(1) if article_match else str(i)
+        meta = {**metadata, "chunk_index": i, "article": article_num}
+        max_allowed = int(CHUNK_SIZE * 1.1)
+        if len(section) <= max_allowed:
+            chunks.append({"content": section, "metadata": meta})
+            continue
+        for j, part in enumerate(splitter.split_text(section)):
+            if part.strip():
+                chunks.append(
+                    {"content": part, "metadata": {**meta, "chunk_index": j}}
+                )
+    return chunks
+
+
 def chunk_documents(documents: list[dict]) -> list[dict]:
-    """Split documents using RecursiveCharacterTextSplitter."""
+    """Split documents — legal files by Điều, news by recursive splitter."""
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
         chunk_overlap=CHUNK_OVERLAP,
@@ -72,6 +99,11 @@ def chunk_documents(documents: list[dict]) -> list[dict]:
 
     chunks: list[dict] = []
     for doc in documents:
+        is_legal = doc["metadata"].get("type") == "legal"
+        if is_legal and "**Điều " in doc["content"]:
+            chunks.extend(_chunk_legal_by_articles(doc["content"], doc["metadata"], splitter))
+            continue
+
         splits = splitter.split_text(doc["content"])
         for i, chunk_text in enumerate(splits):
             if not chunk_text.strip():

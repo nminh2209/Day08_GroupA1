@@ -39,9 +39,12 @@ If the information is not explicitly stated in the provided context,
 state 'Tôi không thể xác minh thông tin này từ nguồn hiện có' rather than guessing.
 
 Rules:
-- Only use information from the provided context
+- Only use information from the provided context — do NOT add facts, numbers, or legal conclusions not present in the context
 - Every factual claim MUST have a citation in brackets
 - Use the Source label from each document block for citations
+- If the question names a specific person (nghệ sĩ, ca sĩ, diễn viên), only use passages about THAT person; ignore similar cases about other people
+- If the context mentions both a general prohibition and an authorized exception (e.g. nghiên cứu, y tế, cơ quan có thẩm quyền cho phép), include the exception when answering permission questions
+- Prefer quoting exact penalties, durations, and article numbers exactly as written in the context
 - If context is insufficient, say so clearly
 - NEVER generate markdown links like `[text](http...)` or include external URLs under any circumstances
 - Do NOT include footer text, registration form text, or navigational text from the sources
@@ -187,6 +190,7 @@ def build_sources_list(chunks: list[dict]) -> list[dict]:
                 "type": doc_type,
                 "score": chunk.get("score", 0.0),
                 "retrieval": chunk.get("source", "hybrid"),
+                "content": chunk["content"],
                 "snippet": clean_snippet(chunk["content"]),
                 "link": get_actual_link(doc_type, source_name)
             }
@@ -264,6 +268,7 @@ def generate_with_citation(query: str, top_k: int = TOP_K) -> dict:
     return {
         "answer": answer,
         "sources": sources,
+        "context_texts": [c["content"] for c in reordered],
         "citations": citations,
         "retrieval_source": chunks[0].get("source", "hybrid") if chunks else "none",
         "model": model_used,
